@@ -7,17 +7,15 @@ module ExpertSenderApi::Email
     end
 
     def insert_to(xml)
-      xml.Recipients {
+      xml.Recipients do
         if subscriber_lists.any?
-          xml.SubscriberLists {
+          xml.SubscriberLists do
             subscriber_lists.each do |list_id|
               xml.SubscriberList list_id
             end
-          }
+          end
         end
-      }
+      end
     end
   end
 end
-
-

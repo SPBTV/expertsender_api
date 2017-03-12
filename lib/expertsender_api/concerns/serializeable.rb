@@ -1,6 +1,5 @@
 module ExpertSenderApi
   module Serializeable
-
     private
 
     def attributes
@@ -10,7 +9,7 @@ module ExpertSenderApi
     end
 
     def camel_case(str)
-      str.split(/[\W_]/).map {|c| c.capitalize}.join
+      str.split(/[\W_]/).map(&:capitalize).join
     end
 
     def variables_to_serialize
@@ -18,4 +17,3 @@ module ExpertSenderApi
     end
   end
 end
-

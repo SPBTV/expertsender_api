@@ -10,14 +10,11 @@ module ExpertSenderApi::Email
     end
 
     def insert_to(xml)
-      xml.Content {
+      xml.Content do
         attributes.each do |attr|
           xml.send(attr[:name], attr[:value]) unless attr[:value].nil?
         end
-      }
+      end
     end
   end
 end
-
-
-

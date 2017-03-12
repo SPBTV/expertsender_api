@@ -2,7 +2,7 @@ $LOAD_PATH.push File.expand_path('../lib', __FILE__)
 
 Gem::Specification.new do |s|
   s.name = 'expertsender_api'
-  s.version = '0.0.1'
+  s.version = '0.0.2'
   s.authors = ['kinderly']
   s.email = ['beorc@httplab.ru']
   s.homepage = 'http://github.com/kinderly/expertsender_api'

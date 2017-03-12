@@ -1,6 +1,7 @@
 module ExpertSenderApi
   class API
     include HTTParty
+    include ExpertSenderApi::DataTable
 
     class << self
       attr_accessor :api_key, :api_endpoint, :throws_exceptions
@@ -27,6 +28,9 @@ module ExpertSenderApi
         @removed_subscribers_url = api_endpoint + '/Api/RemovedSubscribers'
         @newsletters_url = api_endpoint + '/Api/Newsletters'
         @transactionals_url = api_endpoint + '/Api/Transactionals'
+
+        @add_multi_row_url = api_endpoint + '/Api/DataTablesAddMultipleRows'
+        @clear_tbl_url = api_endpoint + '/Api/DataTablesClearTable'
       end
     end
 
@@ -46,6 +50,37 @@ module ExpertSenderApi
 
       xml = builder.to_xml save_with: Nokogiri::XML::Node::SaveOptions::NO_DECLARATION
       response = self.class.post(@subscribers_url, body: xml)
+
+      handle_response(response)
+    end
+
+    def add_multi_data_to_tbl(tbl_name, data)
+      builder = Nokogiri::XML::Builder.new do |xml|
+        xml.ApiRequest(XML_NAMESPACES) do
+          xml.ApiKey api_key
+          xml.TableName tbl_name
+          xml.Data do
+            data.each { |row| add_row_to_xml(row, xml) }
+          end
+        end
+      end
+
+      xml = builder.to_xml save_with: Nokogiri::XML::Node::SaveOptions::NO_DECLARATION
+      response = self.class.post(@add_multi_row_url, body: xml)
+
+      handle_response(response)
+    end
+
+    def clear_tbl(tbl_name)
+      builder = Nokogiri::XML::Builder.new do |xml|
+        xml.ApiRequest(XML_NAMESPACES) do
+          xml.ApiKey api_key
+          xml.TableName tbl_name
+        end
+      end
+
+      xml = builder.to_xml save_with: Nokogiri::XML::Node::SaveOptions::NO_DECLARATION
+      response = self.class.post(@clear_tbl_url, body: xml)
 
       handle_response(response)
     end

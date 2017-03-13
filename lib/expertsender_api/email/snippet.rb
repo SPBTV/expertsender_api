@@ -9,19 +9,16 @@ module ExpertSenderApi::Email
     end
 
     def insert_to(xml)
-      if !name.empty? and !value.empty?
-        xml.Snippet {
+      if !name.empty? && !value.empty?
+        xml.Snippet do
           xml.Name name
           if cdata
             xml.Value { xml.cdata value }
           else
             xml.Value value
           end
-        }
+        end
       end
     end
   end
 end
-
-
-

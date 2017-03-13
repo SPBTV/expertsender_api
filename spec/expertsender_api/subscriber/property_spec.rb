@@ -2,18 +2,20 @@ require 'spec_helper'
 
 describe ExpertSenderApi::Subscriber::Property do
   context :with_valid_attributes do
-    let(:valid_attributes) { { id: 123,
-                               type: 'string',
-                               value: 'Test Property Value' } }
+    let(:valid_attributes) do
+      { id: 123,
+        type: 'string',
+        value: 'Test Property Value' }
+    end
 
     subject do
       ExpertSenderApi::Subscriber::Property.new valid_attributes
     end
 
     it 'has proper attributes' do
-      subject.id.should eq valid_attributes[:id]
-      subject.type.should eq valid_attributes[:type]
-      subject.value.should eq valid_attributes[:value]
+      expect(subject.id).to eq valid_attributes[:id]
+      expect(subject.type).to eq valid_attributes[:type]
+      expect(subject.value).to eq valid_attributes[:value]
     end
 
     it 'generates proper markup' do
@@ -23,11 +25,9 @@ describe ExpertSenderApi::Subscriber::Property do
 
       xml = Nokogiri::XML(builder.to_xml)
 
-      xml.xpath('//Property/Id').text.to_i.should eq valid_attributes[:id]
-      xml.xpath('//Property/Value').attribute('xsi:type').value.should eq "xs:#{valid_attributes[:type]}"
-      xml.xpath('//Property/Value').text.should eq valid_attributes[:value]
+      expect(xml.xpath('//Property/Id').text.to_i).to eq valid_attributes[:id]
+      expect(xml.xpath('//Property/Value').attribute('xsi:type').value).to eq "xs:#{valid_attributes[:type]}"
+      expect(xml.xpath('//Property/Value').text).to eq valid_attributes[:value]
     end
   end
 end
-
-

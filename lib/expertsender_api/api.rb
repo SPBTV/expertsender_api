@@ -1,6 +1,7 @@
 module ExpertSenderApi
   class API
     include HTTParty
+    include ExpertSenderApi::DataTable
 
     class << self
       attr_accessor :api_key, :api_endpoint, :throws_exceptions
@@ -13,13 +14,13 @@ module ExpertSenderApi
     SUBSCRIBER_INFO_OPTION_FULL = 3
 
     XML_NAMESPACES = { 'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
-                       'xmlns:xs' => 'http://www.w3.org/2001/XMLSchema' }
+                       'xmlns:xs' => 'http://www.w3.org/2001/XMLSchema' }.freeze
 
     def initialize(key: nil, **parameters)
       @api_key = key || self.class.api_key || ENV['EXPERTSENDER_API_KEY']
       @api_key = @api_key.strip if @api_key
 
-      @throws_exceptions = parameters.has_key?(:throws_exceptions) ? parameters.delete(:throws_exceptions) : self.class.throws_exceptions
+      @throws_exceptions = parameters.key?(:throws_exceptions) ? parameters.delete(:throws_exceptions) : self.class.throws_exceptions
       @api_endpoint = parameters.delete(:api_endpoint) || self.class.api_endpoint
 
       unless api_endpoint.nil?
@@ -27,6 +28,9 @@ module ExpertSenderApi
         @removed_subscribers_url = api_endpoint + '/Api/RemovedSubscribers'
         @newsletters_url = api_endpoint + '/Api/Newsletters'
         @transactionals_url = api_endpoint + '/Api/Transactionals'
+
+        @add_multi_row_url = api_endpoint + '/Api/DataTablesAddMultipleRows'
+        @clear_tbl_url = api_endpoint + '/Api/DataTablesClearTable'
       end
     end
 
@@ -36,16 +40,47 @@ module ExpertSenderApi
 
     def add_subscribers_to_list(subscribers)
       builder = Nokogiri::XML::Builder.new do |xml|
-        xml.ApiRequest(XML_NAMESPACES) {
+        xml.ApiRequest(XML_NAMESPACES) do
           xml.ApiKey api_key
-          xml.MultiData {
+          xml.MultiData do
             subscribers.each { |subscriber| subscriber.insert_to(xml) }
-          }
-        }
+          end
+        end
       end
 
       xml = builder.to_xml save_with: Nokogiri::XML::Node::SaveOptions::NO_DECLARATION
       response = self.class.post(@subscribers_url, body: xml)
+
+      handle_response(response)
+    end
+
+    def add_multi_data_to_tbl(tbl_name, data)
+      builder = Nokogiri::XML::Builder.new do |xml|
+        xml.ApiRequest(XML_NAMESPACES) do
+          xml.ApiKey api_key
+          xml.TableName tbl_name
+          xml.Data do
+            data.each { |row| add_row_to_xml(row, xml) }
+          end
+        end
+      end
+
+      xml = builder.to_xml save_with: Nokogiri::XML::Node::SaveOptions::NO_DECLARATION
+      response = self.class.post(@add_multi_row_url, body: xml)
+
+      handle_response(response)
+    end
+
+    def clear_tbl(tbl_name)
+      builder = Nokogiri::XML::Builder.new do |xml|
+        xml.ApiRequest(XML_NAMESPACES) do
+          xml.ApiKey api_key
+          xml.TableName tbl_name
+        end
+      end
+
+      xml = builder.to_xml save_with: Nokogiri::XML::Node::SaveOptions::NO_DECLARATION
+      response = self.class.post(@clear_tbl_url, body: xml)
 
       handle_response(response)
     end
@@ -92,13 +127,13 @@ module ExpertSenderApi
       content = options.delete :content
 
       builder = Nokogiri::XML::Builder.new do |xml|
-        xml.ApiRequest(XML_NAMESPACES) {
+        xml.ApiRequest(XML_NAMESPACES) do
           xml.ApiKey api_key
-          xml.Data {
+          xml.Data do
             recipients.insert_to xml
             content.insert_to xml
-          }
-        }
+          end
+        end
       end
 
       xml = builder.to_xml save_with: Nokogiri::XML::Node::SaveOptions::NO_DECLARATION
@@ -113,17 +148,17 @@ module ExpertSenderApi
       snippets = options.delete :snippets
 
       builder = Nokogiri::XML::Builder.new do |xml|
-        xml.ApiRequest(XML_NAMESPACES) {
+        xml.ApiRequest(XML_NAMESPACES) do
           xml.ApiKey api_key
-          xml.Data {
+          xml.Data do
             receiver.insert_to xml
             if snippets.any?
-              xml.Snippets {
+              xml.Snippets do
                 snippets.each { |snippet| snippet.insert_to(xml) }
-              }
+              end
             end
-          }
-        }
+          end
+        end
       end
 
       xml = builder.to_xml save_with: Nokogiri::XML::Node::SaveOptions::NO_DECLARATION
@@ -135,8 +170,8 @@ module ExpertSenderApi
     def get_deleted_subscribers(options = {})
       params = { apiKey: api_key }
 
-      list_ids =  options[:list_ids]
-      remove_types =  options[:remove_types]
+      list_ids = options[:list_ids]
+      remove_types = options[:remove_types]
       start_date = options[:start_date]
       end_date = options[:end_date]
 
@@ -165,20 +200,19 @@ module ExpertSenderApi
     end
 
     def should_raise_for_response?(result)
-      @throws_exceptions and result.failed?
+      @throws_exceptions && result.failed?
     end
 
     def remove_subscriber_by_email(email, options = {})
-      params = options.merge({ apiKey: api_key, email: email })
+      params = options.merge(apiKey: api_key, email: email)
 
       self.class.delete(@subscribers_url, query: params)
     end
 
     def remove_subscriber_by_id(id, options = {})
-      params = options.merge({ apiKey: api_key })
+      params = options.merge(apiKey: api_key)
 
       self.class.delete("#{@subscribers_url}/#{id}", query: params)
     end
   end
 end
-

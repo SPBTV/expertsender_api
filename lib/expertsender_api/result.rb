@@ -6,7 +6,7 @@ module ExpertSenderApi
     def initialize(response)
       @response = response
 
-      if (@response.body)
+      if @response.body
         @parsed_response = Nokogiri::XML(@response.body)
 
         if @parsed_response.xpath('//ErrorMessage').any?
@@ -19,13 +19,13 @@ module ExpertSenderApi
     end
 
     def success?
-      status_success? and
-      error_code.nil? and
-      error_message.nil?
+      status_success? &&
+        error_code.nil? &&
+        error_message.nil?
     end
 
     def failed?
-      not success?
+      !success?
     end
 
     def status_success?
@@ -33,4 +33,3 @@ module ExpertSenderApi
     end
   end
 end
-

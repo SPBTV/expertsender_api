@@ -8,5 +8,5 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'expertsender_api'
 
 RSpec.configure do |config|
-  config.color_enabled = true
+  config.color = true
 end

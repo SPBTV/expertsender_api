@@ -2,11 +2,11 @@ module ExpertSenderApi::Subscriber
   class Tag
     include ::ExpertSenderApi::Serializeable
 
-    MODE_ADD_AND_UPDATE = 'AddAndUpdate'
-    MODE_ADD_AND_REPLACE = 'AddAndReplace'
-    MODE_ADD_AND_IGNORE = 'AddAndIgnore'
-    MODE_IGNORE_AND_UPDATE = 'IgnoreAndUpdate'
-    MODE_IGNORE_AND_REPLACE = 'IgnoreAndReplace'
+    MODE_ADD_AND_UPDATE = 'AddAndUpdate'.freeze
+    MODE_ADD_AND_REPLACE = 'AddAndReplace'.freeze
+    MODE_ADD_AND_IGNORE = 'AddAndIgnore'.freeze
+    MODE_IGNORE_AND_UPDATE = 'IgnoreAndUpdate'.freeze
+    MODE_IGNORE_AND_REPLACE = 'IgnoreAndReplace'.freeze
 
     class << self
       attr_accessor :mode, :force, :list_id
@@ -25,16 +25,16 @@ module ExpertSenderApi::Subscriber
     end
 
     def insert_to(xml)
-      xml.Subscriber {
+      xml.Subscriber do
         attributes.each do |attr|
           xml.send(attr[:name], attr[:value]) unless attr[:value].nil?
         end
         if properties.any?
-          xml.Properties {
+          xml.Properties do
             properties.each { |property| property.insert_to(xml) }
-          }
+          end
         end
-      }
+      end
     end
 
     private
@@ -44,4 +44,3 @@ module ExpertSenderApi::Subscriber
     end
   end
 end
-
